@@ -23,12 +23,28 @@ def clear_session():
 @app.route('/articles')
 def index_articles():
 
-    pass
+    articles = [article.to_dict() for article in Article.query.all()]
+    resp = articles
+
+    return resp
 
 @app.route('/articles/<int:id>')
 def show_article(id):
 
-    pass
+# Initialize session['page_views'] to 0 if it's the user's first request
+    session['page_views'] = session.get('page_views', 0)
+# Increment the page_views count for every request
+    session['page_views'] += 1
+
+    # Check if the user has viewed more than 3 pages
+    if session['page_views'] <= 3:
+        # Return article data if the limit has not been reached
+        article = Article.query.filter(Article.id == id).first().to_dict()
+        return article
+    else:
+        resp_body = {'message': 'Maximum pageview limit reached'}
+        resp = make_response(resp_body, 401)
+        return resp
 
 if __name__ == '__main__':
     app.run(port=5555)
